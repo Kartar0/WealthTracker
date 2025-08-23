@@ -5,6 +5,7 @@ export const currencySymbols = {
   JPY: '¥',
   CAD: 'C$',
   AUD: 'A$',
+  INR: '₹',
 } as const;
 
 export type Currency = keyof typeof currencySymbols;
@@ -16,6 +17,7 @@ export const currencies = [
   { value: 'JPY', label: 'JPY (¥)' },
   { value: 'CAD', label: 'CAD (C$)' },
   { value: 'AUD', label: 'AUD (A$)' },
+  { value: 'INR', label: 'INR (₹)' },
 ] as const;
 
 export function formatCurrency(amount: number, currency: Currency): string {
