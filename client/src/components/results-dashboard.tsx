@@ -1,10 +1,11 @@
 import { useEffect, useRef } from 'react';
-import { Assets, Liabilities } from '@shared/schema';
+import { motion } from 'framer-motion';
+import { Assets, Liabilities, MonthlyFinancials } from '@shared/schema';
 import { formatCurrency, Currency } from '@/lib/currency';
 import { exportToPDF, exportToJSON } from '@/lib/export';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, RotateCcw, PieChart, PlusCircle, MinusCircle, Percent, Printer, Download, Smile } from 'lucide-react';
+import { ArrowLeft, RotateCcw, PieChart, PlusCircle, MinusCircle, Percent, Printer, Download, Smile, TrendingUp, TrendingDown, DollarSign } from 'lucide-react';
 import { Chart, ChartConfiguration, registerables } from 'chart.js';
 
 // Register Chart.js components
@@ -13,10 +14,14 @@ Chart.register(...registerables);
 interface ResultsDashboardProps {
   assets: Assets;
   liabilities: Liabilities;
+  monthlyFinancials: MonthlyFinancials;
   totalAssets: number;
   totalLiabilities: number;
   netWorth: number;
   debtToAssetRatio: number;
+  monthlyIncome: number;
+  monthlyExpenses: number;
+  monthlyCashFlow: number;
   currency: Currency;
   onBack: () => void;
   onReset: () => void;
@@ -25,10 +30,14 @@ interface ResultsDashboardProps {
 export function ResultsDashboard({
   assets,
   liabilities,
+  monthlyFinancials,
   totalAssets,
   totalLiabilities,
   netWorth,
   debtToAssetRatio,
+  monthlyIncome,
+  monthlyExpenses,
+  monthlyCashFlow,
   currency,
   onBack,
   onReset,
@@ -58,9 +67,13 @@ export function ResultsDashboard({
     const data = {
       assets,
       liabilities,
+      monthlyFinancials,
       totalAssets,
       totalLiabilities,
       netWorth,
+      monthlyIncome,
+      monthlyExpenses,
+      monthlyCashFlow,
       currency,
     };
     exportToJSON(data);
@@ -314,6 +327,39 @@ export function ResultsDashboard({
               <h4 className="font-semibold text-gray-900 mb-1">Debt-to-Asset Ratio</h4>
               <div className="text-xl font-bold text-primary" data-testid="debt-ratio">
                 {debtToAssetRatio}%
+              </div>
+            </div>
+          </div>
+
+          {/* Monthly Cash Flow Summary */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
+              <div className="text-green-600 text-2xl mb-2">
+                <TrendingUp className="h-8 w-8 mx-auto" />
+              </div>
+              <h4 className="font-semibold text-gray-900 mb-1">Monthly Income</h4>
+              <div className="text-xl font-bold text-green-600" data-testid="summary-monthly-income">
+                {formatCurrency(monthlyIncome, currency)}
+              </div>
+            </div>
+            
+            <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+              <div className="text-red-600 text-2xl mb-2">
+                <TrendingDown className="h-8 w-8 mx-auto" />
+              </div>
+              <h4 className="font-semibold text-gray-900 mb-1">Monthly Expenses</h4>
+              <div className="text-xl font-bold text-red-600" data-testid="summary-monthly-expenses">
+                {formatCurrency(monthlyExpenses, currency)}
+              </div>
+            </div>
+            
+            <div className={`${monthlyCashFlow >= 0 ? 'bg-blue-50 border-blue-200' : 'bg-orange-50 border-orange-200'} rounded-lg p-6 text-center`}>
+              <div className={`${monthlyCashFlow >= 0 ? 'text-primary' : 'text-orange-600'} text-2xl mb-2`}>
+                <DollarSign className="h-8 w-8 mx-auto" />
+              </div>
+              <h4 className="font-semibold text-gray-900 mb-1">Monthly Cash Flow</h4>
+              <div className={`text-xl font-bold ${monthlyCashFlow >= 0 ? 'text-primary' : 'text-orange-600'}`} data-testid="summary-cash-flow">
+                {formatCurrency(monthlyCashFlow, currency)}
               </div>
             </div>
           </div>

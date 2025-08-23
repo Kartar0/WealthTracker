@@ -1,10 +1,11 @@
 import { useState, useCallback, useEffect } from 'react';
-import { Assets, Liabilities } from '@shared/schema';
+import { Assets, Liabilities, MonthlyFinancials } from '@shared/schema';
 import { Currency } from '@/lib/currency';
 
 interface NetWorthData {
   assets: Assets;
   liabilities: Liabilities;
+  monthlyFinancials: MonthlyFinancials;
   currency: Currency;
 }
 
@@ -13,6 +14,9 @@ interface NetWorthCalculations {
   totalLiabilities: number;
   netWorth: number;
   debtToAssetRatio: number;
+  monthlyIncome: number;
+  monthlyExpenses: number;
+  monthlyCashFlow: number;
 }
 
 const defaultAssets: Assets = {
@@ -44,10 +48,31 @@ const defaultLiabilities: Liabilities = {
   carLoan2: 0,
 };
 
+const defaultMonthlyFinancials: MonthlyFinancials = {
+  salary: 0,
+  bonuses: 0,
+  freelance: 0,
+  rentalIncome: 0,
+  investments: 0,
+  otherIncome: 0,
+  housing: 0,
+  utilities: 0,
+  groceries: 0,
+  transportation: 0,
+  insurance: 0,
+  healthcare: 0,
+  entertainment: 0,
+  dining: 0,
+  shopping: 0,
+  subscriptions: 0,
+  otherExpenses: 0,
+};
+
 export function useNetWorth() {
   const [data, setData] = useState<NetWorthData>({
     assets: defaultAssets,
     liabilities: defaultLiabilities,
+    monthlyFinancials: defaultMonthlyFinancials,
     currency: 'USD',
   });
 
@@ -56,26 +81,36 @@ export function useNetWorth() {
     totalLiabilities: 0,
     netWorth: 0,
     debtToAssetRatio: 0,
+    monthlyIncome: 0,
+    monthlyExpenses: 0,
+    monthlyCashFlow: 0,
   });
 
-  const calculateTotals = useCallback((assets: Assets, liabilities: Liabilities) => {
+  const calculateTotals = useCallback((assets: Assets, liabilities: Liabilities, monthlyFinancials: MonthlyFinancials) => {
     const totalAssets = Object.values(assets).reduce((sum, value) => sum + (value || 0), 0);
     const totalLiabilities = Object.values(liabilities).reduce((sum, value) => sum + (value || 0), 0);
     const netWorth = totalAssets - totalLiabilities;
     const debtToAssetRatio = totalAssets > 0 ? Math.round((totalLiabilities / totalAssets) * 100) : 0;
+
+    const monthlyIncome = monthlyFinancials.salary + monthlyFinancials.bonuses + monthlyFinancials.freelance + monthlyFinancials.rentalIncome + monthlyFinancials.investments + monthlyFinancials.otherIncome;
+    const monthlyExpenses = monthlyFinancials.housing + monthlyFinancials.utilities + monthlyFinancials.groceries + monthlyFinancials.transportation + monthlyFinancials.insurance + monthlyFinancials.healthcare + monthlyFinancials.entertainment + monthlyFinancials.dining + monthlyFinancials.shopping + monthlyFinancials.subscriptions + monthlyFinancials.otherExpenses;
+    const monthlyCashFlow = monthlyIncome - monthlyExpenses;
 
     return {
       totalAssets,
       totalLiabilities,
       netWorth,
       debtToAssetRatio,
+      monthlyIncome,
+      monthlyExpenses,
+      monthlyCashFlow,
     };
   }, []);
 
   const updateAssets = useCallback((newAssets: Partial<Assets>) => {
     setData(prev => {
       const updatedAssets = { ...prev.assets, ...newAssets };
-      const newCalculations = calculateTotals(updatedAssets, prev.liabilities);
+      const newCalculations = calculateTotals(updatedAssets, prev.liabilities, prev.monthlyFinancials);
       setCalculations(newCalculations);
       
       return {
@@ -88,12 +123,25 @@ export function useNetWorth() {
   const updateLiabilities = useCallback((newLiabilities: Partial<Liabilities>) => {
     setData(prev => {
       const updatedLiabilities = { ...prev.liabilities, ...newLiabilities };
-      const newCalculations = calculateTotals(prev.assets, updatedLiabilities);
+      const newCalculations = calculateTotals(prev.assets, updatedLiabilities, prev.monthlyFinancials);
       setCalculations(newCalculations);
       
       return {
         ...prev,
         liabilities: updatedLiabilities,
+      };
+    });
+  }, [calculateTotals]);
+
+  const updateMonthlyFinancials = useCallback((newMonthlyFinancials: Partial<MonthlyFinancials>) => {
+    setData(prev => {
+      const updatedMonthlyFinancials = { ...prev.monthlyFinancials, ...newMonthlyFinancials };
+      const newCalculations = calculateTotals(prev.assets, prev.liabilities, updatedMonthlyFinancials);
+      setCalculations(newCalculations);
+      
+      return {
+        ...prev,
+        monthlyFinancials: updatedMonthlyFinancials,
       };
     });
   }, [calculateTotals]);
@@ -109,6 +157,7 @@ export function useNetWorth() {
     setData({
       assets: defaultAssets,
       liabilities: defaultLiabilities,
+      monthlyFinancials: defaultMonthlyFinancials,
       currency: 'USD',
     });
     setCalculations({
@@ -116,6 +165,9 @@ export function useNetWorth() {
       totalLiabilities: 0,
       netWorth: 0,
       debtToAssetRatio: 0,
+      monthlyIncome: 0,
+      monthlyExpenses: 0,
+      monthlyCashFlow: 0,
     });
   }, []);
 
@@ -142,12 +194,14 @@ export function useNetWorth() {
         setData({
           assets: parsed.assets || defaultAssets,
           liabilities: parsed.liabilities || defaultLiabilities,
+          monthlyFinancials: parsed.monthlyFinancials || defaultMonthlyFinancials,
           currency: parsed.currency || 'USD',
         });
         
         const newCalculations = calculateTotals(
           parsed.assets || defaultAssets,
-          parsed.liabilities || defaultLiabilities
+          parsed.liabilities || defaultLiabilities,
+          parsed.monthlyFinancials || defaultMonthlyFinancials
         );
         setCalculations(newCalculations);
         return true;
@@ -177,6 +231,7 @@ export function useNetWorth() {
     calculations,
     updateAssets,
     updateLiabilities,
+    updateMonthlyFinancials,
     updateCurrency,
     reset,
     saveToLocalStorage,

@@ -1,7 +1,9 @@
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNetWorth } from '@/hooks/use-net-worth';
 import { AssetsForm } from './assets-form';
 import { LiabilitiesForm } from './liabilities-form';
+import { MonthlyFinancialsForm } from './monthly-financials-form';
 import { ResultsDashboard } from './results-dashboard';
 import { ProgressIndicator } from './progress-indicator';
 import { CurrencySelector } from './currency-selector';
@@ -11,7 +13,7 @@ import { Calculator, Save } from 'lucide-react';
 
 export function NetWorthCalculator() {
   const [currentStep, setCurrentStep] = useState(1);
-  const { data, calculations, updateAssets, updateLiabilities, updateCurrency, reset, saveToLocalStorage } = useNetWorth();
+  const { data, calculations, updateAssets, updateLiabilities, updateMonthlyFinancials, updateCurrency, reset, saveToLocalStorage } = useNetWorth();
   const { toast } = useToast();
 
   const handleSave = () => {
@@ -68,45 +70,93 @@ export function NetWorthCalculator() {
       </header>
 
       {/* Progress Indicator */}
-      <ProgressIndicator currentStep={currentStep} totalSteps={3} />
+      <ProgressIndicator currentStep={currentStep} totalSteps={4} />
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {currentStep === 1 && (
-          <AssetsForm
-            assets={data.assets}
-            currency={data.currency}
-            onAssetsChange={updateAssets}
-            onNext={() => handleStepChange(2)}
-          />
-        )}
+        <AnimatePresence mode="wait">
+          {currentStep === 1 && (
+            <motion.div
+              key="assets"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <AssetsForm
+                assets={data.assets}
+                currency={data.currency}
+                onAssetsChange={updateAssets}
+                onNext={() => handleStepChange(2)}
+              />
+            </motion.div>
+          )}
 
-        {currentStep === 2 && (
-          <LiabilitiesForm
-            liabilities={data.liabilities}
-            currency={data.currency}
-            onLiabilitiesChange={updateLiabilities}
-            onNext={() => handleStepChange(3)}
-            onBack={() => handleStepChange(1)}
-          />
-        )}
+          {currentStep === 2 && (
+            <motion.div
+              key="liabilities"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <LiabilitiesForm
+                liabilities={data.liabilities}
+                currency={data.currency}
+                onLiabilitiesChange={updateLiabilities}
+                onNext={() => handleStepChange(3)}
+                onBack={() => handleStepChange(1)}
+              />
+            </motion.div>
+          )}
 
-        {currentStep === 3 && (
-          <ResultsDashboard
-            assets={data.assets}
-            liabilities={data.liabilities}
-            totalAssets={calculations.totalAssets}
-            totalLiabilities={calculations.totalLiabilities}
-            netWorth={calculations.netWorth}
-            debtToAssetRatio={calculations.debtToAssetRatio}
-            currency={data.currency}
-            onBack={() => handleStepChange(2)}
-            onReset={() => {
-              reset();
-              handleStepChange(1);
-            }}
-          />
-        )}
+          {currentStep === 3 && (
+            <motion.div
+              key="monthly-financials"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <MonthlyFinancialsForm
+                monthlyFinancials={data.monthlyFinancials}
+                currency={data.currency}
+                onMonthlyFinancialsChange={updateMonthlyFinancials}
+                onNext={() => handleStepChange(4)}
+                onBack={() => handleStepChange(2)}
+              />
+            </motion.div>
+          )}
+
+          {currentStep === 4 && (
+            <motion.div
+              key="results"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <ResultsDashboard
+                assets={data.assets}
+                liabilities={data.liabilities}
+                monthlyFinancials={data.monthlyFinancials}
+                totalAssets={calculations.totalAssets}
+                totalLiabilities={calculations.totalLiabilities}
+                netWorth={calculations.netWorth}
+                debtToAssetRatio={calculations.debtToAssetRatio}
+                monthlyIncome={calculations.monthlyIncome}
+                monthlyExpenses={calculations.monthlyExpenses}
+                monthlyCashFlow={calculations.monthlyCashFlow}
+                currency={data.currency}
+                onBack={() => handleStepChange(3)}
+                onReset={() => {
+                  reset();
+                  handleStepChange(1);
+                }}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </main>
 
       {/* Footer */}

@@ -1,3 +1,4 @@
+import { motion } from 'framer-motion';
 import { Assets } from '@shared/schema';
 import { formatCurrency, Currency, getCurrencySymbol } from '@/lib/currency';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -32,11 +33,34 @@ export function AssetsForm({ assets, currency, onAssetsChange, onNext }: AssetsF
   const personalTotal = calculateCategoryTotal(['vehicles', 'jewelry', 'business']);
   const totalAssets = cashTotal + realEstateTotal + investmentsTotal + personalTotal;
 
+  const containerVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.6,
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 }
+  };
+
   return (
     <TooltipProvider>
-      <div className="space-y-8">
-        <Card className="border-gray-200 shadow-sm">
-          <CardHeader>
+      <motion.div 
+        className="space-y-8"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        <motion.div variants={itemVariants}>
+          <Card className="border-gray-200 shadow-sm">
+            <CardHeader>
             <div className="flex items-center">
               <div className="bg-green-500 text-white rounded-lg p-2 mr-3">
                 <PlusCircle className="h-6 w-6" />
@@ -407,7 +431,8 @@ export function AssetsForm({ assets, currency, onAssetsChange, onNext }: AssetsF
             </div>
           </CardContent>
         </Card>
-      </div>
+        </motion.div>
+      </motion.div>
     </TooltipProvider>
   );
 }

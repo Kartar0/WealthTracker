@@ -15,9 +15,13 @@ export const netWorthCalculations = pgTable("net_worth_calculations", {
   currency: text("currency").notNull().default("USD"),
   assets: json("assets").notNull(),
   liabilities: json("liabilities").notNull(),
+  monthlyFinancials: json("monthly_financials").notNull(),
   totalAssets: real("total_assets").notNull().default(0),
   totalLiabilities: real("total_liabilities").notNull().default(0),
   netWorth: real("net_worth").notNull().default(0),
+  monthlyIncome: real("monthly_income").notNull().default(0),
+  monthlyExpenses: real("monthly_expenses").notNull().default(0),
+  monthlyCashFlow: real("monthly_cash_flow").notNull().default(0),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -45,6 +49,30 @@ export const assetsSchema = z.object({
   business: z.number().min(0).default(0),
 });
 
+// Monthly Income & Expenses schema
+export const monthlyFinancialsSchema = z.object({
+  // Monthly Income
+  salary: z.number().min(0).default(0),
+  bonuses: z.number().min(0).default(0),
+  freelance: z.number().min(0).default(0),
+  rentalIncome: z.number().min(0).default(0),
+  investments: z.number().min(0).default(0),
+  otherIncome: z.number().min(0).default(0),
+  
+  // Monthly Expenses
+  housing: z.number().min(0).default(0),
+  utilities: z.number().min(0).default(0),
+  groceries: z.number().min(0).default(0),
+  transportation: z.number().min(0).default(0),
+  insurance: z.number().min(0).default(0),
+  healthcare: z.number().min(0).default(0),
+  entertainment: z.number().min(0).default(0),
+  dining: z.number().min(0).default(0),
+  shopping: z.number().min(0).default(0),
+  subscriptions: z.number().min(0).default(0),
+  otherExpenses: z.number().min(0).default(0),
+});
+
 // Liabilities categories schema
 export const liabilitiesSchema = z.object({
   // Mortgages & Loans
@@ -70,6 +98,7 @@ export const liabilitiesSchema = z.object({
 export const insertNetWorthCalculationSchema = createInsertSchema(netWorthCalculations, {
   assets: assetsSchema,
   liabilities: liabilitiesSchema,
+  monthlyFinancials: monthlyFinancialsSchema,
 }).omit({
   id: true,
   createdAt: true,
@@ -87,3 +116,4 @@ export type NetWorthCalculation = typeof netWorthCalculations.$inferSelect;
 export type InsertNetWorthCalculation = z.infer<typeof insertNetWorthCalculationSchema>;
 export type Assets = z.infer<typeof assetsSchema>;
 export type Liabilities = z.infer<typeof liabilitiesSchema>;
+export type MonthlyFinancials = z.infer<typeof monthlyFinancialsSchema>;
